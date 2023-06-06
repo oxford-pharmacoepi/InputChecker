@@ -1,4 +1,3 @@
-# EmptyPackageTemplate
+# InputChecker
 
-This template empty package is meant to be used to create new R packages.
-See extras/PackageMaintenance.R to see the commands to be executed when creating the package.
+This package is used to test the infputs of different functions

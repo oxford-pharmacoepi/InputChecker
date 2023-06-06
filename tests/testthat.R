@@ -1,4 +1,4 @@
 library(testthat)
-library(EmptyPackage)
+library(InputChecker)
 
-test_check("EmptyPackage")
+test_check("InputChecker")
