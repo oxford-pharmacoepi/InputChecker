@@ -15,7 +15,7 @@ It says hello to whoever you want, by default world.
 \examples{
 #'
 \dontrun{
-library(InputChecker)
+library(EmptyPackage)
 hello()
 }
 }
