@@ -1,51 +1,94 @@
-#' Function to check the inputs of a function
+#' Check the input parameters in OMOP CDM Tools environment
 #'
-#' @param ... Named parameters, the name of the parameter should be the name of
-#' the test that you want to apply e.g. checkInput(name = parameters) it will
-#' run the function checkName, and use parameter as name input
-#' @param .standard Whether to include the standard tests included in the
-#' package see the documentation to see the standard checks included
+#' @param ... Named elements to check. The name will determine the check that is
+#' applied.
+#' @param .options Other paramters needed to conduct the checks. It must be a
+#' named list.
 #'
-checkInput <- function(..., .standard = TRUE) {
-  inputs <- list(...)
-  check.standard(.standard)
-  package <- getPackageCall()
-  initialNameCheck(inputs, standard = .standard, package = package)
-  lapply(names(inputs), function(x) {
-    funName <- paste0(
-      "check", toupper(substr(x, 1, 1)), substr(x, 2, nchar(x))
+#' @return Informative error and warnings messages if the inputs don't pass the
+#' designed checks.
+#'
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' cdm <- 1
+#' class(cdm) <- c("cdm_reference", class(cdm))
+#' checkInputs(cdm = cdm)
+#' }
+#'
+checkInput <- function(..., .options = list()) {
+  # check config
+  toCheck <- config(list(...), .options)
+
+  # perform checks
+  performChecks(toCheck)
+
+  return(invisible(NULL))
+}
+
+config <- function(inputs, .options) {
+  # check that inputs is a named list
+  if(!assertNamedList(inputs)) {
+    cli::cli_abort("Inputs must be named to know the check to be applied")
+  }
+
+  # check that .options is a named list
+  if(!assertNamedList(.options)) {
+    cli::cli_abort(".options must be a named list")
+  }
+
+  # check names in .options different from inputs
+  if (any(names(.options) %in% names(inputs))) {
+    cli::cli_abort("Option names cna not be the same than an input.")
+  }
+
+  # read available functions
+  availableFunctions <- getAvailableFunctions()
+
+  # check if we can check all inputs
+  notAvailableInputs <- names(inputs)[
+    !(names(inputs) %in% availableFunctions$input)
+  ]
+  if (length(notAvailableInputs) > 0) {
+    cli::cli_abort(paste0(
+      "The following inputs are not able to be tested:",
+      paste0(notAvailableInputs, collapse = ", ")
+    ))
+  }
+
+  # check if we have all the needed arguments
+  availableFunctions <- availableFunctions %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(missing_arguments = 1) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(missing_argument = lengths(.data$missing_arguments))
+  if (sum(availableFunctions$missing_argument) > 0) {
+    arguments <- availableFunctions %>%
+      dplyr::filter(.data$missing_argument == 1) %>%
+      dplyr
+    dplyr::pull("missing_arguments")
+    cli::cli_abort(
+      "Some "
     )
-    varName <- eval(parse(text = paste0("names(formals(", funName, "))")))
-    eval(parse(text = paste0(
-      funName, "(",
-      paste0( paste0("inputs[[\"", varName, "\"]]"), collapse = ", "), ")"
-    )))
-  })
-  invisible(NULL)
-}
-
-check.standard <- function(.standard) {
-  errorMessage <- ".standard must be TRUE or FALSE"
-  if (!is.logical(.standard) | length(.standard) != 1 | is.na(.standard)) {
-    cli::cli_abort(errorMessage)
   }
 }
 
-getPackageCall <- function() {
+performChecks <- function(toCheck) {
 
 }
 
-initialNameCheck <- function(inputs, standard, package) {
-  variables <- names(inputs)
-  neededFunctions <- paste0("check", variables)
-  packageFunctions <- getFunctionsCheck(package)
-  inputCheckerFunctions <- getFunctionsCheck("InputChecker")
-  if (length(notInPackage) > 0) {
-
+assertNamedList <- function(input) {
+  if (!is.list(input)) {
+    return(FALSE)
   }
-}
-
-getFunctions <- function(package) {
-  # first get functions of a package
-
+  if (length(input) > 0) {
+    if (!is.character(names(input))) {
+      return(FALSE)
+    }
+    if (length(names(input)) != length(input)) {
+      return(FALSE)
+    }
+  }
+  return(TRUE)
 }

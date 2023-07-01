@@ -2,18 +2,29 @@
 % Please edit documentation in R/checkInput.R
 \name{checkInput}
 \alias{checkInput}
-\title{Function to check the inputs of a function}
+\title{Check the input parameters in OMOP CDM Tools environment}
 \usage{
-checkInput(..., .standard = TRUE)
+checkInput(..., .options = list())
 }
 \arguments{
-\item{...}{Named parameters, the name of the parameter should be the name of
-the test that you want to apply e.g. checkInput(name = parameters) it will
-run the function checkName, and use parameter as name input}
+\item{...}{Named elements to check. The name will determine the check that is
+applied.}
 
-\item{.standard}{Whether to include the standard tests included in the
-package see the documentation to see the standard checks included}
+\item{.options}{Other paramters needed to conduct the checks. It must be a
+named list.}
+}
+\value{
+Informative error and warnings messages if the inputs don't pass the
+designed checks.
 }
 \description{
-Function to check the inputs of a function
+Check the input parameters in OMOP CDM Tools environment
+}
+\examples{
+\donttest{
+cdm <- 1
+class(cdm) <- c("cdm_reference", class(cdm))
+checkInputs(cdm = cdm)
+}
+
 }
