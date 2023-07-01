@@ -59,23 +59,44 @@ config <- function(inputs, .options) {
 
   # check if we have all the needed arguments
   availableFunctions <- availableFunctions %>%
+    dplyr::mutate(available_argument = list(names(inputs))) %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(missing_arguments = 1) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(missing_argument = lengths(.data$missing_arguments))
-  if (sum(availableFunctions$missing_argument) > 0) {
+    dplyr::mutate(
+      available_argument = list(.data$argument[
+        .data$argument %in% .data$available_argument
+      ]),
+      missing_argument = list(.data$required_argument[!(
+        .data$required_argument %in% .data$available_argument
+      )])
+    ) %>%
+    dplyr::mutate(missing_argument_flag = length(.data$missing_argument))
+  if (sum(availableFunctions$missing_argument_flag) > 0) {
     arguments <- availableFunctions %>%
-      dplyr::filter(.data$missing_argument == 1) %>%
-      dplyr
-    dplyr::pull("missing_arguments")
-    cli::cli_abort(
-      "Some "
-    )
+      dplyr::filter(.data$missing_argument_flag == 1) %>%
+      dplyr::mutate(error = paste0(
+        "- function: ", .data$package, "::", .data$name, "(); missing argument: ",
+        paste0(.data$missing_argument, collapse = ", ")
+      )) %>%
+      dplyr::pull("error")
+    cli::cli_abort(c("x" = "Some required arguments are missing:", arguments))
   }
+
+  # return
+  availableFunctions %>%
+    dplyr::select("package", "name", "available_argument")
 }
 
-performChecks <- function(toCheck) {
-
+performChecks <- function(toCheck, inputs) {
+  for (k in seq_len(nrow(toCheck))) {
+    toCheck[k,] %>%
+      {paste0(.$package, "::", .$name, "(", paste0(
+        .$available_argument %>%
+          unlist() %>%
+          paste0(" = inputs[[\"", .x, "\"]]")
+        ), ")")} %>%
+      parse() %>%
+      eval()
+    }
 }
 
 assertNamedList <- function(input) {
