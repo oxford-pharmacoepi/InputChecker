@@ -1,6 +1,7 @@
 #' Check the cdm
 #'
 #' @param cdm Object to check if it is a valid cdm reference
+#' @param tablesToCheck Tables that must be contained in the cdm
 #'
 #' @return Informative error and warnings messages if the inputs don't pass the
 #' designed check.

@@ -14,7 +14,7 @@
 #' \donttest{
 #' cdm <- 1
 #' class(cdm) <- c("cdm_reference", class(cdm))
-#' checkInputs(cdm = cdm)
+#' checkInput(cdm = cdm)
 #' }
 #'
 checkInput <- function(..., .options = list()) {
@@ -44,7 +44,8 @@ config <- function(inputs, .options) {
   }
 
   # read available functions
-  availableFunctions <- getAvailableFunctions()
+  availableFunctions <- getAvailableFunctions() %>%
+    dplyr::filter(.data$input %in% names(inputs))
 
   # check if we can check all inputs
   notAvailableInputs <- names(inputs)[
@@ -88,15 +89,12 @@ config <- function(inputs, .options) {
 
 performChecks <- function(toCheck, inputs) {
   for (k in seq_len(nrow(toCheck))) {
-    toCheck[k,] %>%
-      {paste0(.$package, "::", .$name, "(", paste0(
-        .$available_argument %>%
-          unlist() %>%
-          paste0(" = inputs[[\"", .x, "\"]]")
-        ), ")")} %>%
-      parse() %>%
-      eval()
-    }
+    x <- toCheck[k,]
+    eval(parse(text = paste0(x$package, "::", x$name, "(", paste0(
+      unlist(x$available_argument), " = inputs[[\"",
+      unlist(x$available_argument), "\"]]", collapse = ", "
+    ), ")")))
+  }
 }
 
 assertNamedList <- function(input) {

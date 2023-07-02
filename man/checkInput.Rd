@@ -24,7 +24,7 @@ Check the input parameters in OMOP CDM Tools environment
 \donttest{
 cdm <- 1
 class(cdm) <- c("cdm_reference", class(cdm))
-checkInputs(cdm = cdm)
+checkInput(cdm = cdm)
 }
 
 }

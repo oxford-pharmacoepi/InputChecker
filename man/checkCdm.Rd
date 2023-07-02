@@ -8,6 +8,8 @@ checkCdm(cdm, tablesToCheck = NULL)
 }
 \arguments{
 \item{cdm}{Object to check if it is a valid cdm reference}
+
+\item{tablesToCheck}{Tables that must be contained in the cdm}
 }
 \value{
 Informative error and warnings messages if the inputs don't pass the

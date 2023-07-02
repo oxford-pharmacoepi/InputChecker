@@ -4,27 +4,22 @@
 #'
 getAvailableFunctions <- function() {
   # functions available in InputChecker
-  functionsInputChecker <- dplyr::tibble(
-    package = "InputChecker",
-    name = getNamespaceExports("InputChecker") %>%
-      {.[substr(., 1, 5) == "check"]}
-  ) %>%
-    dplyr::mutate(input = tolower(substr(.data$name, 6, nchar(.data$name)))) %>%
-    dplyr::filter(.data$name != "checkInput")
+  name <- getNamespaceExports("InputChecker")
+  functionsInputChecker <- dplyr::tibble(package = "InputChecker", name = name)
 
   # functions available in source package
   packageName <- methods::getPackageName()
-  functionsSourcePackage <- dplyr::tibble(
-    package = packageName,
-    name = getNamespaceExports(packageName) %>%
-      {.[substr(., 1, 5) == "check"]}
-  ) %>%
-    dplyr::mutate(input = tolower(substr(.data$name, 6, nchar(.data$name))))
+  name <- getNamespaceExports(packageName)
+  functionsSourcePackage <- dplyr::tibble(package = packageName, name =  name)
 
   # eliminate standard checks if present in source package
   functions <- functionsInputChecker %>%
     dplyr::anti_join(functionsSourcePackage, by = "name") %>%
-    dplyr::union_all(functionsSourcePackage)
+    dplyr::union_all(functionsSourcePackage) %>%
+    dplyr::filter(
+      substr(.data$name, 1, 5) == "check" & .data$name != "checkInput"
+    ) %>%
+    dplyr::mutate(input = tolower(substr(.data$name, 6, nchar(.data$name))))
 
   # add argument
   functions <- addArgument(functions)
