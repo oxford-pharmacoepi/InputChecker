@@ -4,8 +4,12 @@
 \name{InputChecker-package}
 \alias{InputChecker}
 \alias{InputChecker-package}
-\title{InputChecker: What the Package Does (Title Case)}
+\title{InputChecker: Chech Inputs for Functions in the DARWIN-EU Framewrok}
 \description{
-More about what it does (maybe more than one line) Use four spaces when indenting paragraphs within the Description.
+This package provides the necessary utilities for the DARWIN-EU packages, such as check environment to check inputs of functions consistently and create a mock cdm object.
+}
+\author{
+\strong{Maintainer}: Marti Catala \email{marti.catalasabate@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0003-3308-9905}{ORCID})
+
 }
 \keyword{internal}

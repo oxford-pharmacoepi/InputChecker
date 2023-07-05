@@ -20,7 +20,10 @@ Check the cdm
 }
 \examples{
 \donttest{
-cdm <- 1
+library(InputChecker)
+library(dplyr)
+
+cdm <- list("person" = tibble())
 class(cdm) <- c("cdm_reference", class(cdm))
 checkCdm(cdm)
 }

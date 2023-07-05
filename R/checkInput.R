@@ -12,17 +12,25 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- 1
+#' library(InputChecker)
+#' library(dplyr)
+#'
+#' cdm <- list("person" = tibble())
 #' class(cdm) <- c("cdm_reference", class(cdm))
 #' checkInput(cdm = cdm)
 #' }
 #'
 checkInput <- function(..., .options = list()) {
+  inputs <- list(...)
+
   # check config
-  toCheck <- config(list(...), .options)
+  toCheck <- config(inputs = inputs, .options = .options)
+
+  # append options
+  inputs <- append(inputs, .options)
 
   # perform checks
-  performChecks(toCheck)
+  performChecks(toCheck = toCheck, inputs = inputs)
 
   return(invisible(NULL))
 }
@@ -60,7 +68,7 @@ config <- function(inputs, .options) {
 
   # check if we have all the needed arguments
   availableFunctions <- availableFunctions %>%
-    dplyr::mutate(available_argument = list(names(inputs))) %>%
+    dplyr::mutate(available_argument = list(c(names(inputs), names(.options)))) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
       available_argument = list(.data$argument[

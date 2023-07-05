@@ -1,11 +1,16 @@
 Package: InputChecker
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Chech Inputs for Functions in the DARWIN-EU Framewrok
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R: 
+    person(
+        "Marti", "Catala", email = "marti.catalasabate@ndorms.ox.ac.uk", 
+        role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3308-9905")
+    )
+Maintainer: Marti Catala <marti.catalasabate@ndorms.ox.ac.uk>
+Description: This package provides the necessary utilities for the DARWIN-EU 
+    packages, such as check environment to check inputs of functions 
+    consistently and create a mock cdm object.
 License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true

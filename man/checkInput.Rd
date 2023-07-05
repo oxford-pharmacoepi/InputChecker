@@ -22,7 +22,10 @@ Check the input parameters in OMOP CDM Tools environment
 }
 \examples{
 \donttest{
-cdm <- 1
+library(InputChecker)
+library(dplyr)
+
+cdm <- list("person" = tibble())
 class(cdm) <- c("cdm_reference", class(cdm))
 checkInput(cdm = cdm)
 }

@@ -1,5 +1,5 @@
 test_that("test it works", {
-  cdm <- list("table" = 1)
+  cdm <- list("person" = dplyr::tibble())
   class(cdm) <- c("cdm_reference", class(cdm))
   name <- "new_table"
 

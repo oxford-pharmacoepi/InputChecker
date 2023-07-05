@@ -20,9 +20,12 @@ Check name for a new element in the cdm
 }
 \examples{
 \donttest{
-cdm <- 1
+library(InputChecker)
+library(dplyr)
+
+cdm <- list("person" = tibble())
 class(cdm) <- c("cdm_reference", class(cdm))
-checkCdm("new_element", cdm)
+checkName("new_element", cdm)
 }
 
 }

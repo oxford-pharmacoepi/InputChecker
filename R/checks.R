@@ -10,7 +10,10 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- 1
+#' library(InputChecker)
+#' library(dplyr)
+#'
+#' cdm <- list("person" = tibble())
 #' class(cdm) <- c("cdm_reference", class(cdm))
 #' checkCdm(cdm)
 #' }
@@ -44,9 +47,12 @@ checkCdm <- function(cdm, tablesToCheck = NULL) {
 #'
 #' @examples
 #' \donttest{
-#' cdm <- 1
+#' library(InputChecker)
+#' library(dplyr)
+#'
+#' cdm <- list("person" = tibble())
 #' class(cdm) <- c("cdm_reference", class(cdm))
-#' checkCdm("new_element", cdm)
+#' checkName("new_element", cdm)
 #' }
 #'
 checkName <- function(name, cdm) {
@@ -54,7 +60,9 @@ checkName <- function(name, cdm) {
     cli::cli_abort("name must a character vector of length one")
   }
   if (name %in% names(cdm)) {
-    cli::cli_abort(paste0("name (", name, ") is already contained in the cdm"))
+    cli::cli_warn(paste0(
+      name, " is already contained in the cdm, it will be overwritten"
+    ))
   }
   return(invisible(NULL))
 }
