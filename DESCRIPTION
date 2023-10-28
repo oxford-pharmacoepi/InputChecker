@@ -1,7 +1,7 @@
 Package: InputChecker
 Type: Package
-Title: Chech Inputs for Functions in the DARWIN-EU Framewrok
-Version: 0.1.0
+Title: Chech Inputs for Functions in the Omopverse Framewrok
+Version: 0.2.0
 Authors@R: 
     person(
         "Marti", "Catala", email = "marti.catalasabate@ndorms.ox.ac.uk", 
@@ -16,10 +16,11 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 Suggests: 
-    testthat
+    testthat (>= 3.0.0)
 Imports: 
     cli,
     dplyr,
-    magrittr,
     methods,
     rlang
+Config/testthat/edition: 3
+Config/testthat/parallel: true

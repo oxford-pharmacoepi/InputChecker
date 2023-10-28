@@ -1,26 +1,19 @@
+
 #' Check the input parameters in OMOP CDM Tools environment
 #'
 #' @param ... Named elements to check. The name will determine the check that is
 #' applied.
 #' @param .options Other paramters needed to conduct the checks. It must be a
 #' named list.
+#' @param call The corresponding function call is retrieved and mentioned in
+#' error messages as the source of the error.
 #'
 #' @return Informative error and warnings messages if the inputs don't pass the
-#' designed checks.
+#' desired checks.
 #'
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' library(InputChecker)
-#' library(dplyr)
-#'
-#' cdm <- list("person" = tibble())
-#' class(cdm) <- c("cdm_reference", class(cdm))
-#' checkInput(cdm = cdm)
-#' }
-#'
-checkInput <- function(..., .options = list()) {
+checkInput <- function(..., .options = list(), call = parent.frame()) {
   inputs <- list(...)
 
   # check config
@@ -30,7 +23,7 @@ checkInput <- function(..., .options = list()) {
   inputs <- append(inputs, .options)
 
   # perform checks
-  performChecks(toCheck = toCheck, inputs = inputs)
+  performChecks(toCheck = toCheck, inputs = inputs, call = call)
 
   return(invisible(NULL))
 }
@@ -52,7 +45,7 @@ config <- function(inputs, .options) {
   }
 
   # read available functions
-  availableFunctions <- getAvailableFunctions() %>%
+  availableFunctions <- getAvailableFunctions() |>
     dplyr::filter(.data$input %in% names(inputs))
 
   # check if we can check all inputs
@@ -61,15 +54,15 @@ config <- function(inputs, .options) {
   ]
   if (length(notAvailableInputs) > 0) {
     cli::cli_abort(paste0(
-      "The following inputs are not able to be tested:",
+      "The following inputs are not able to be tested: ",
       paste0(notAvailableInputs, collapse = ", ")
     ))
   }
 
   # check if we have all the needed arguments
-  availableFunctions <- availableFunctions %>%
-    dplyr::mutate(available_argument = list(c(names(inputs), names(.options)))) %>%
-    dplyr::rowwise() %>%
+  availableFunctions <- availableFunctions |>
+    dplyr::mutate(available_argument = list(c(names(inputs), names(.options)))) |>
+    dplyr::rowwise() |>
     dplyr::mutate(
       available_argument = list(.data$argument[
         .data$argument %in% .data$available_argument
@@ -77,34 +70,35 @@ config <- function(inputs, .options) {
       missing_argument = list(.data$required_argument[!(
         .data$required_argument %in% .data$available_argument
       )])
-    ) %>%
+    ) |>
     dplyr::mutate(missing_argument_flag = length(.data$missing_argument))
   if (sum(availableFunctions$missing_argument_flag) > 0) {
-    arguments <- availableFunctions %>%
-      dplyr::filter(.data$missing_argument_flag == 1) %>%
+    arguments <- availableFunctions |>
+      dplyr::filter(.data$missing_argument_flag == 1) |>
       dplyr::mutate(error = paste0(
         "- function: ", .data$package, "::", .data$name, "(); missing argument: ",
         paste0(.data$missing_argument, collapse = ", ")
-      )) %>%
+      )) |>
       dplyr::pull("error")
     cli::cli_abort(c("x" = "Some required arguments are missing:", arguments))
   }
 
   # return
-  availableFunctions %>%
+  availableFunctions |>
     dplyr::select("package", "name", "available_argument")
 }
-
-performChecks <- function(toCheck, inputs) {
+performChecks <- function(toCheck, inputs, call = call) {
   for (k in seq_len(nrow(toCheck))) {
     x <- toCheck[k,]
-    eval(parse(text = paste0(x$package, "::", x$name, "(", paste0(
+    nam <- ifelse(
+      x$package == "InputChecker", x$name, paste0(x$package, "::", x$name)
+    )
+    eval(parse(text = paste0(nam, "(", paste0(
       unlist(x$available_argument), " = inputs[[\"",
       unlist(x$available_argument), "\"]]", collapse = ", "
-    ), ")")))
+    ), ", call = call)")))
   }
 }
-
 assertNamedList <- function(input) {
   if (!is.list(input)) {
     return(FALSE)
@@ -118,4 +112,77 @@ assertNamedList <- function(input) {
     }
   }
   return(TRUE)
+}
+
+#' get available functions to check the inputs
+#'
+#' @noRd
+#'
+getAvailableFunctions <- function() {
+  # functions available in InputChecker
+  name <- ls(getNamespace("InputChecker"), all.names = TRUE)
+  functionsInputChecker <- dplyr::tibble(package = "InputChecker", name = name)
+
+  # functions available in source package
+  packageName <- methods::getPackageName()
+  name <- getNamespaceExports(packageName)
+  functionsSourcePackage <- dplyr::tibble(package = packageName, name =  name)
+
+  # eliminate standard checks if present in source package
+  functions <- functionsInputChecker |>
+    dplyr::anti_join(functionsSourcePackage, by = "name") |>
+    dplyr::union_all(functionsSourcePackage) |>
+    dplyr::filter(
+      substr(.data$name, 1, 5) == "check" & .data$name != "checkInput"
+    ) |>
+    dplyr::mutate(input = paste0(
+      tolower(substr(.data$name, 6, 6)),
+      substr(.data$name, 7, nchar(.data$name))
+    ))
+
+  # add argument
+  functions <- addArgument(functions)
+
+  return(functions)
+}
+
+#' Add argument of the functions and if they have a default or not
+#'
+#' @noRd
+#'
+addArgument <- function(functions) {
+  functions |>
+    dplyr::rowwise() |>
+    dplyr::group_split() |>
+    lapply(function(x){
+      nam <- ifelse(
+        x$package == "InputChecker", x$name, paste0(x$package, "::", x$name)
+      )
+      argument <- formals(eval(parse(text = nam)))
+      requiredArgument <- lapply(argument, function(x){
+        xx <- x
+        missing(xx)
+      })
+      requiredArgument <- names(requiredArgument)[unlist(requiredArgument)]
+      x |>
+        dplyr::mutate(
+          argument = list(names(argument)),
+          required_argument = list(requiredArgument)
+        )
+    }) |>
+    dplyr::bind_rows()
+}
+
+#' List available inputs to check
+#'
+#' @export
+#'
+listInputCheck <- function() {
+  dplyr::tibble(name = ls(getNamespace("InputChecker"), all.names = TRUE)) |>
+    dplyr::filter(substr(.data$name, 1, 5) == "check") |>
+    # dplyr::mutate(
+    #   name = toCamelCase(substr(.data$name, 6, nchar(.data$name)))
+    # ) |>
+    dplyr::filter(.data$name != "input") |>
+    dplyr::pull()
 }

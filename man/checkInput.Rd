@@ -4,7 +4,7 @@
 \alias{checkInput}
 \title{Check the input parameters in OMOP CDM Tools environment}
 \usage{
-checkInput(..., .options = list())
+checkInput(..., .options = list(), call = parent.frame())
 }
 \arguments{
 \item{...}{Named elements to check. The name will determine the check that is
@@ -12,22 +12,14 @@ applied.}
 
 \item{.options}{Other paramters needed to conduct the checks. It must be a
 named list.}
+
+\item{call}{The corresponding function call is retrieved and mentioned in
+error messages as the source of the error.}
 }
 \value{
 Informative error and warnings messages if the inputs don't pass the
-designed checks.
+desired checks.
 }
 \description{
 Check the input parameters in OMOP CDM Tools environment
-}
-\examples{
-\donttest{
-library(InputChecker)
-library(dplyr)
-
-cdm <- list("person" = tibble())
-class(cdm) <- c("cdm_reference", class(cdm))
-checkInput(cdm = cdm)
-}
-
 }

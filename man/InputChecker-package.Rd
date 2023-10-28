@@ -4,7 +4,7 @@
 \name{InputChecker-package}
 \alias{InputChecker}
 \alias{InputChecker-package}
-\title{InputChecker: Chech Inputs for Functions in the DARWIN-EU Framewrok}
+\title{InputChecker: Chech Inputs for Functions in the Omopverse Framewrok}
 \description{
 This package provides the necessary utilities for the DARWIN-EU packages, such as check environment to check inputs of functions consistently and create a mock cdm object.
 }
