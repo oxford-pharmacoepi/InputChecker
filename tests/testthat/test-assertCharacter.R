@@ -1,4 +1,4 @@
-test_that("multiplication works", {
+test_that("assertCharacter works as expected", {
   # class
   expect_error(assertCharacter(1))
   expect_error(assertCharacter(list("hi")))
