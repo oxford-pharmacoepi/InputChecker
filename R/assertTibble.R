@@ -6,6 +6,7 @@
 #' @param numberRows Number of rows.
 #' @param columns Name of columns that must be present.
 #' @param null Whether it can be null.
+#' @param distinct Whether it has to contain distinct rows.
 #' @param call Call argument that will be passed to `cli`.
 #'
 #' @export
@@ -15,6 +16,7 @@ assertTibble <- function(x,
                          numberRows = NULL,
                          columns = NULL,
                          null = FALSE,
+                         distinct = FALSE,
                          call = parent.frame()) {
   # create error message
   errorMessage <- paste0(
@@ -24,6 +26,7 @@ assertTibble <- function(x,
     ifelse(is.null(numberRows), character(), paste0("; with at least ", numberRows, " rows")),
     ifelse(is.null(columns), character(), paste0("; the following columns must be present: ", paste0(columns, collapse = ", "))),
     errorNull(null),
+    ifelse(distinct, "; it has to contain distinct rows", character()),
     "."
   )
 
@@ -54,6 +57,14 @@ assertTibble <- function(x,
         cli::cli_abort(errorMessage, call = call)
       }
     }
+
+    # assert distinct
+    if (distinct) {
+      if (nrow(x) != x |> dplyr::distinct() |> nrow()) {
+        cli::cli_abort(errorMessage, call = call)
+      }
+    }
+
   }
 
   return(invisible(x))

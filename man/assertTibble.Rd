@@ -10,6 +10,7 @@ assertTibble(
   numberRows = NULL,
   columns = NULL,
   null = FALSE,
+  distinct = FALSE,
   call = parent.frame()
 )
 }
@@ -23,6 +24,8 @@ assertTibble(
 \item{columns}{Name of columns that must be present.}
 
 \item{null}{Whether it can be null.}
+
+\item{distinct}{Whether it has to contain distinct rows.}
 
 \item{call}{Call argument that will be passed to `cli`.}
 }

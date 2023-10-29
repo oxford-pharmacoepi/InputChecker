@@ -6,6 +6,7 @@
 #' @param length Length that has to have.
 #' @param na Whether it can contain NA values.
 #' @param null Whether it can be null.
+#' @param unique Whether it has to contain unique elements.
 #' @param named Whether it has to be named.
 #' @param call Call argument that will be passed to `cli`.
 #'
@@ -16,6 +17,7 @@ assertChoice <- function(x,
                          length = NULL,
                          na = FALSE,
                          null = FALSE,
+                         unique = FALSE,
                          named = FALSE,
                          call = parent.frame()) {
   # create error message
@@ -26,6 +28,7 @@ assertChoice <- function(x,
     errorLength(length),
     errorNa(na),
     errorNull(null),
+    errorUnique(unique),
     errorNamed(named),
     "."
   )
@@ -45,6 +48,9 @@ assertChoice <- function(x,
 
     # assert na
     assertNa(x, na, errorMessage, call)
+
+    # assert unique
+    assertUnique(x, unique, errorMessage, call)
 
     # assert named
     assertNamed(x, named, errorMessage, call)
