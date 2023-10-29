@@ -7,17 +7,17 @@
 \usage{
 check_input(..., options = list(), call = parent.frame())
 
-checkInput(..., .options = list(), call = parent.frame())
+checkInput(..., options = list(), call = parent.frame())
 }
 \arguments{
 \item{...}{Named elements to check. The name will determine the check that is
 applied.}
 
+\item{options}{Other paramters needed to conduct the checks. It must be a
+named list.}
+
 \item{call}{The corresponding function call is retrieved and mentioned in
 error messages as the source of the error.}
-
-\item{.options}{Other paramters needed to conduct the checks. It must be a
-named list.}
 }
 \value{
 Informative error and warnings messages if the inputs don't pass the

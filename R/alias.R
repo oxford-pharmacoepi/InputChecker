@@ -7,7 +7,7 @@ assert_character <- function(x,
                              na = FALSE,
                              null = FALSE,
                              named = FALSE,
-                             min_num_character = 0,
+                             minNumCharacter = 0,
                              call = parent.frame()) {
   assertCharacter(
     x = x,
@@ -15,7 +15,7 @@ assert_character <- function(x,
     na = na,
     null = null,
     named = named,
-    minNumCharacter = min_num_character,
+    minNumCharacter = minNumCharacter,
     call = call
   )
 }
@@ -117,15 +117,15 @@ assert_numeric <- function(x,
 #' @rdname assertTibble
 #' @export
 assert_tibble <- function(x,
-                          number_columns = NULL,
-                          number_rows = NULL,
+                          numberColumns = NULL,
+                          numberRows = NULL,
                           columns = NULL,
                           null = FALSE,
                           call = parent.frame()) {
   assertTibble(
     x = x,
-    numberColumns = number_columns,
-    numberRows = number_rows,
+    numberColumns = numberColumns,
+    numberRows = numberRows,
     columns = columns,
     null = null,
     call = call
@@ -139,7 +139,7 @@ check_input <- function(...,
                         call = parent.frame()) {
   checkInput(
     ... = ...,
-    .options = options,
+    options = options,
     call = call
   )
 }

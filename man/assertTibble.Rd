@@ -7,8 +7,8 @@
 \usage{
 assert_tibble(
   x,
-  number_columns = NULL,
-  number_rows = NULL,
+  numberColumns = NULL,
+  numberRows = NULL,
   columns = NULL,
   null = FALSE,
   call = parent.frame()
@@ -26,15 +26,15 @@ assertTibble(
 \arguments{
 \item{x}{To check.}
 
+\item{numberColumns}{Number of columns.}
+
+\item{numberRows}{Number of rows.}
+
 \item{columns}{Name of columns that must be present.}
 
 \item{null}{Whether it can be null.}
 
 \item{call}{Call argument that will be passed to `cli`.}
-
-\item{numberColumns}{Number of columns.}
-
-\item{numberRows}{Number of rows.}
 }
 \description{
 Assert if an object is a tibble and fulfill certain conditions.

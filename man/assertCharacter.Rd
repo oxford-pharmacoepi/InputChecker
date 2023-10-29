@@ -11,7 +11,7 @@ assert_character(
   na = FALSE,
   null = FALSE,
   named = FALSE,
-  min_num_character = 0,
+  minNumCharacter = 0,
   call = parent.frame()
 )
 
@@ -36,9 +36,9 @@ assertCharacter(
 
 \item{named}{Whether it has to be named.}
 
-\item{call}{Call argument that will be passed to `cli`.}
-
 \item{minNumCharacter}{Minimum number of characters.}
+
+\item{call}{Call argument that will be passed to `cli`.}
 }
 \description{
 Assert if an object is a character and fulfill certain conditions.

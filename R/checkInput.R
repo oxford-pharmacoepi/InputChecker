@@ -3,7 +3,7 @@
 #'
 #' @param ... Named elements to check. The name will determine the check that is
 #' applied.
-#' @param .options Other paramters needed to conduct the checks. It must be a
+#' @param options Other paramters needed to conduct the checks. It must be a
 #' named list.
 #' @param call The corresponding function call is retrieved and mentioned in
 #' error messages as the source of the error.
@@ -13,14 +13,14 @@
 #'
 #' @export
 #'
-checkInput <- function(..., .options = list(), call = parent.frame()) {
+checkInput <- function(..., options = list(), call = parent.frame()) {
   inputs <- list(...)
 
   # check config
-  toCheck <- config(inputs = inputs, .options = .options)
+  toCheck <- config(inputs = inputs, options = options)
 
   # append options
-  inputs <- append(inputs, .options)
+  inputs <- append(inputs, options)
 
   # perform checks
   performChecks(toCheck = toCheck, inputs = inputs, call = call)
@@ -28,19 +28,19 @@ checkInput <- function(..., .options = list(), call = parent.frame()) {
   return(invisible(NULL))
 }
 
-config <- function(inputs, .options) {
+config <- function(inputs, options) {
   # check that inputs is a named list
   if(!assertNamedList(inputs)) {
     cli::cli_abort("Inputs must be named to know the check to be applied")
   }
 
-  # check that .options is a named list
-  if(!assertNamedList(.options)) {
-    cli::cli_abort(".options must be a named list")
+  # check that options is a named list
+  if(!assertNamedList(options)) {
+    cli::cli_abort("options must be a named list")
   }
 
-  # check names in .options different from inputs
-  if (any(names(.options) %in% names(inputs))) {
+  # check names in options different from inputs
+  if (any(names(options) %in% names(inputs))) {
     cli::cli_abort("Option names cna not be the same than an input.")
   }
 
@@ -61,7 +61,7 @@ config <- function(inputs, .options) {
 
   # check if we have all the needed arguments
   availableFunctions <- availableFunctions |>
-    dplyr::mutate(available_argument = list(c(names(inputs), names(.options)))) |>
+    dplyr::mutate(available_argument = list(c(names(inputs), names(options)))) |>
     dplyr::rowwise() |>
     dplyr::mutate(
       available_argument = list(.data$argument[
