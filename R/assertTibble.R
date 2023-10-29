@@ -20,9 +20,9 @@ assertTibble <- function(x,
   errorMessage <- paste0(
     paste0(substitute(x), collapse = ""),
     " must be a tibble",
-    ifelse(is.null(numberColumns), "", paste0("; with at least ", numberColumns, " columns")),
-    ifelse(is.null(numberRows), "", paste0("; with at least ", numberRows, " rows")),
-    ifelse(is.null(columns), "", paste0("; the following columns must be present: ", paste0(columns, collapse = ", "))),
+    ifelse(is.null(numberColumns), character(), paste0("; with at least ", numberColumns, " columns")),
+    ifelse(is.null(numberRows), character(), paste0("; with at least ", numberRows, " rows")),
+    ifelse(is.null(columns), character(), paste0("; the following columns must be present: ", paste0(columns, collapse = ", "))),
     errorNull(null),
     "."
   )
