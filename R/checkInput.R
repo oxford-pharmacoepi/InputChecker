@@ -3,7 +3,7 @@
 #'
 #' @param ... Named elements to check. The name will determine the check that is
 #' applied.
-#' @param options Other paramters needed to conduct the checks. It must be a
+#' @param options Other parameters needed to conduct the checks. It must be a
 #' named list.
 #' @param call The corresponding function call is retrieved and mentioned in
 #' error messages as the source of the error.
@@ -17,35 +17,31 @@ checkInput <- function(..., options = list(), call = parent.frame()) {
   inputs <- list(...)
 
   # check config
-  toCheck <- config(inputs = inputs, options = options)
+  toCheck <- config(inputs = inputs, options = options, call = call)
 
-  # append options
-  inputs <- append(inputs, options)
-
-  # perform checks
-  performChecks(toCheck = toCheck, inputs = inputs, call = call)
-
-  return(invisible(NULL))
+  print(toCheck)
+  # # append options
+  # inputs <- append(inputs, options)
+  #
+  # # perform checks
+  # performChecks(toCheck = toCheck, inputs = inputs, call = call)
+  #
+  return(invisible(TRUE))
 }
 
-config <- function(inputs, options) {
-  # check that inputs is a named list
-  if(!assertNamedList(inputs)) {
-    cli::cli_abort("Inputs must be named to know the check to be applied")
-  }
-
-  # check that options is a named list
-  if(!assertNamedList(options)) {
-    cli::cli_abort("options must be a named list")
-  }
+config <- function(inputs, options, call) {
+  assertList(inputs, named = TRUE, na = TRUE, null = TRUE)
+  assertList(options, named = TRUE, na = TRUE, null = TRUE)
 
   # check names in options different from inputs
   if (any(names(options) %in% names(inputs))) {
-    cli::cli_abort("Option names cna not be the same than an input.")
+    cli::cli_abort("Option names can not be the same than an input.")
   }
 
   # read available functions
-  availableFunctions <- getAvailableFunctions() |>
+  availableFunctions <- methods::getPackageName(where = call) |>
+    getAvailableFunctions() |>
+    addArgument() |>
     dplyr::filter(.data$input %in% names(inputs))
 
   # check if we can check all inputs
@@ -113,52 +109,39 @@ assertNamedList <- function(input) {
   }
   return(TRUE)
 }
+getAvailableFunctions <- function(package) {
+  # checks to eliminate from InputChecker
+  toEliminate <- "checkInput"
 
-#' get available functions to check the inputs
-#'
-#' @noRd
-#'
-getAvailableFunctions <- function() {
   # functions available in InputChecker
   name <- ls(getNamespace("InputChecker"), all.names = TRUE)
-  functionsInputChecker <- dplyr::tibble(package = "InputChecker", name = name)
+  functions <- dplyr::tibble(package = "InputChecker", name = name)
 
   # functions available in source package
-  packageName <- methods::getPackageName()
-  name <- getNamespaceExports(packageName)
-  functionsSourcePackage <- dplyr::tibble(package = packageName, name =  name)
+  for (pk in package) {
+    name <- getNamespaceExports(pk)
+    functions <- functions |>
+      dplyr::union_all(dplyr::tibble(package = packageName, name =  name))
+  }
 
   # eliminate standard checks if present in source package
-  functions <- functionsInputChecker |>
-    dplyr::anti_join(functionsSourcePackage, by = "name") |>
-    dplyr::union_all(functionsSourcePackage) |>
+  functions <- functions |>
     dplyr::filter(
-      substr(.data$name, 1, 5) == "check" & .data$name != "checkInput"
+      substr(.data$name, 1, 5) == "check" & !(.data$name %in% .env$toEliminate)
     ) |>
     dplyr::mutate(input = paste0(
       tolower(substr(.data$name, 6, 6)),
       substr(.data$name, 7, nchar(.data$name))
     ))
 
-  # add argument
-  functions <- addArgument(functions)
-
   return(functions)
 }
-
-#' Add argument of the functions and if they have a default or not
-#'
-#' @noRd
-#'
 addArgument <- function(functions) {
   functions |>
     dplyr::rowwise() |>
     dplyr::group_split() |>
     lapply(function(x){
-      nam <- ifelse(
-        x$package == "InputChecker", x$name, paste0(x$package, "::", x$name)
-      )
-      argument <- formals(eval(parse(text = nam)))
+      argument <- formals(eval(parse(text = paste0(x$package, "::", x$name))))
       requiredArgument <- lapply(argument, function(x){
         xx <- x
         missing(xx)
@@ -174,6 +157,8 @@ addArgument <- function(functions) {
 }
 
 #' List available inputs to check
+#'
+#' @param package Package to check
 #'
 #' @export
 #'
