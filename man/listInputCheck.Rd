@@ -4,7 +4,10 @@
 \alias{listInputCheck}
 \title{List available inputs to check}
 \usage{
-listInputCheck()
+listInputCheck(package)
+}
+\arguments{
+\item{package}{Package to check}
 }
 \description{
 List available inputs to check

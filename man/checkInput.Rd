@@ -4,13 +4,13 @@
 \alias{checkInput}
 \title{Check the input parameters in OMOP CDM Tools environment}
 \usage{
-checkInput(..., .options = list(), call = parent.frame())
+checkInput(..., options = list(), call = parent.frame())
 }
 \arguments{
 \item{...}{Named elements to check. The name will determine the check that is
 applied.}
 
-\item{.options}{Other paramters needed to conduct the checks. It must be a
+\item{options}{Other parameters needed to conduct the checks. It must be a
 named list.}
 
 \item{call}{The corresponding function call is retrieved and mentioned in
