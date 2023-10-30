@@ -19,13 +19,12 @@ checkInput <- function(..., options = list(), call = parent.frame()) {
   # check config
   toCheck <- config(inputs = inputs, options = options, call = call)
 
-  print(toCheck)
-  # # append options
-  # inputs <- append(inputs, options)
-  #
-  # # perform checks
-  # performChecks(toCheck = toCheck, inputs = inputs, call = call)
-  #
+  # append options
+  inputs <- c(inputs, list(call = call),  options)
+
+  # perform checks
+  performChecks(toCheck = toCheck, inputs = inputs)
+
   return(invisible(TRUE))
 }
 
@@ -49,15 +48,16 @@ config <- function(inputs, options, call) {
     !(names(inputs) %in% availableFunctions$input)
   ]
   if (length(notAvailableInputs) > 0) {
-    cli::cli_abort(paste0(
-      "The following inputs are not able to be tested: ",
-      paste0(notAvailableInputs, collapse = ", ")
-    ))
+    cli::cli_abort(
+      "The following inputs are not able to be tested: {paste0(notAvailableInputs, collapse = ', ')}"
+    )
   }
 
   # check if we have all the needed arguments
   availableFunctions <- availableFunctions |>
-    dplyr::mutate(available_argument = list(c(names(inputs), names(options)))) |>
+    dplyr::mutate(
+      available_argument = list(c(names(inputs), "call", names(options)))
+    ) |>
     dplyr::rowwise() |>
     dplyr::mutate(
       available_argument = list(.data$argument[
@@ -72,28 +72,17 @@ config <- function(inputs, options, call) {
     arguments <- availableFunctions |>
       dplyr::filter(.data$missing_argument_flag == 1) |>
       dplyr::mutate(error = paste0(
-        "- function: ", .data$package, "::", .data$name, "(); missing argument: ",
+        "function: ", .data$package, ":::", .data$name, "(); missing argument: ",
         paste0(.data$missing_argument, collapse = ", ")
       )) |>
       dplyr::pull("error")
+    names(arguments) <- rep("*", length(arguments))
     cli::cli_abort(c("x" = "Some required arguments are missing:", arguments))
   }
 
   # return
   availableFunctions |>
     dplyr::select("package", "name", "available_argument")
-}
-performChecks <- function(toCheck, inputs, call = call) {
-  for (k in seq_len(nrow(toCheck))) {
-    x <- toCheck[k,]
-    nam <- ifelse(
-      x$package == "InputChecker", x$name, paste0(x$package, "::", x$name)
-    )
-    eval(parse(text = paste0(nam, "(", paste0(
-      unlist(x$available_argument), " = inputs[[\"",
-      unlist(x$available_argument), "\"]]", collapse = ", "
-    ), ", call = call)")))
-  }
 }
 assertNamedList <- function(input) {
   if (!is.list(input)) {
@@ -115,20 +104,19 @@ getAvailableFunctions <- function(package) {
 
   # functions available in InputChecker
   name <- ls(getNamespace("InputChecker"), all.names = TRUE)
-  functions <- dplyr::tibble(package = "InputChecker", name = name)
+  functions <- dplyr::tibble(package = "InputChecker", name = name) |>
+    dplyr::filter(!(.data$name %in% .env$toEliminate))
 
   # functions available in source package
   for (pk in package) {
-    name <- getNamespaceExports(pk)
+    name <- ls(getNamespace(pk), all.names = TRUE)
     functions <- functions |>
-      dplyr::union_all(dplyr::tibble(package = packageName, name =  name))
+      dplyr::union_all(dplyr::tibble(package = pk, name =  name))
   }
 
-  # eliminate standard checks if present in source package
+  # find functions that have checks
   functions <- functions |>
-    dplyr::filter(
-      substr(.data$name, 1, 5) == "check" & !(.data$name %in% .env$toEliminate)
-    ) |>
+    dplyr::filter(substr(.data$name, 1, 5) == "check") |>
     dplyr::mutate(input = paste0(
       tolower(substr(.data$name, 6, 6)),
       substr(.data$name, 7, nchar(.data$name))
@@ -141,7 +129,7 @@ addArgument <- function(functions) {
     dplyr::rowwise() |>
     dplyr::group_split() |>
     lapply(function(x){
-      argument <- formals(eval(parse(text = paste0(x$package, "::", x$name))))
+      argument <- formals(eval(parse(text = paste0(x$package, ":::", x$name))))
       requiredArgument <- lapply(argument, function(x){
         xx <- x
         missing(xx)
@@ -155,6 +143,16 @@ addArgument <- function(functions) {
     }) |>
     dplyr::bind_rows()
 }
+performChecks <- function(toCheck, inputs) {
+  for (k in seq_len(nrow(toCheck))) {
+    x <- toCheck[k,]
+    eval(parse(text = paste0(x$package, ":::", x$name, "(", paste0(
+      unlist(x$available_argument), " = inputs[[\"",
+      unlist(x$available_argument), "\"]]", collapse = ", "
+    ), ")")))
+  }
+}
+
 
 #' List available inputs to check
 #'
@@ -162,12 +160,26 @@ addArgument <- function(functions) {
 #'
 #' @export
 #'
-listInputCheck <- function() {
-  dplyr::tibble(name = ls(getNamespace("InputChecker"), all.names = TRUE)) |>
-    dplyr::filter(substr(.data$name, 1, 5) == "check") |>
-    # dplyr::mutate(
-    #   name = toCamelCase(substr(.data$name, 6, nchar(.data$name)))
-    # ) |>
-    dplyr::filter(.data$name != "input") |>
-    dplyr::pull()
+listInputCheck <- function(package) {
+  assertCharacter(package)
+  notInstalled <- package[!package %in% utils::installed.packages()[,"Package"]]
+  if (length(notInstalled) > 0) {
+    cli::cli_warn("The following package are not installed: {paste0(notInstalled, collapse = ', ')}")
+    package <- package[!package %in% notInstalled]
+  }
+  funs <- getAvailableFunctions(package)
+  packages <- unique(funs$package)
+  mes <- character()
+  for (pk in packages) {
+    x <- funs |> dplyr::filter(.data$package == .env$pk) |> dplyr::pull("input")
+    names(x) <- rep("*", length(x))
+    mes <- c(
+      mes, paste0("Arguments available in ", cli::style_bold(pk), ":"), x
+    )
+  }
+  if (length(mes) == 0) {
+    mes <- c("!" = "No available checks found")
+  }
+  cli::cli_inform(mes)
+  return(invisible(funs))
 }
